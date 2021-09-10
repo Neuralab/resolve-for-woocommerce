@@ -4,7 +4,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * RFW_Data class
  *
- * @since 0.1
+ * @since 0.9
  */
 class RFW_Data {
 	/**
@@ -13,41 +13,6 @@ class RFW_Data {
 	 * @var array
 	 */
 	private static $settings = array();
-
-	/**
-	 * Set endpoint for webshop api.
-	 *
-	 * @var string
-	 */
-	private static $endpoint = 'wc-resolve';
-
-	/**
-	 * Set base url of resolve pay.
-	 *
-	 * @var string
-	 */
-	private static $resolve_pay = 'https://resolve.hr/';
-
-	/**
-	 * Set base url of resolve API.
-	 *
-	 * @var string
-	 */
-	private static $resolve_api = 'https://ewa.erstebank.hr/tps/';
-
-	/**
-	 * Set base test url of resolve API.
-	 *
-	 * @var string
-	 */
-	private static $test_resolve_api = 'https://resolveuat.erstebank.hr/eretailer/';
-
-	/**
-	 * Init data class.
-	 */
-	public function __construct() {
-		self::load_settings();
-	}
 
 	/**
 	 * Load gateway settings from the database.
@@ -153,11 +118,20 @@ class RFW_Data {
 	 *
 	 * @return bool
 	 */
+	public static function is_auto_redirect() {
+		return 'yes' === self::get_settings( 'auto-redirect' );
+	}
+
+	/**
+	 * Return true if payment mode is capture.
+	 *
+	 * @return bool
+	 */
 	public static function is_backorder_pay_disabled() {
 		return 'yes' === self::get_settings( 'backorder-disable' );
 	}
 
-		/**
+	/**
 	 * Return items data formatted for usage with Resolve JS script.
 	 *
 	 * @see https://app.paywithresolve.com/docs/direct
@@ -259,6 +233,17 @@ class RFW_Data {
 				'email'      => $order->get_billing_email(),
 			];
 		}
+	}
+
+	/**
+	 * Creates a link that will trigger Rsolve modal.
+	 *
+	 * @param   string  $label  Label for the link
+	 *
+	 * @return  mixed           HMTL of the link.
+	 */
+	public static function display_modal_link( $label = null ) {
+		return '<a href="#" id="rfw-apply">' . ( $label ?: __( 'Learn more', 'resolve' ) ) . '</a>';
 	}
 
 }

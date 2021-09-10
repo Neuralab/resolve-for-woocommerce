@@ -5,11 +5,13 @@ if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
 	return;
 }
 
+/**
+ * RFW_Payment_Gateway class
+ */
 class RFW_Payment_Gateway extends WC_Payment_Gateway {
 
 	/**
-	 * Class constructor with basic gateway's setup.
-	 * @param bool $init  Should the class attributes be initialized.
+	 * Class constructor.
 	 */
 	public function __construct() {
 		$this->id                 = RFW_PLUGIN_ID;
@@ -18,50 +20,39 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 		$this->has_fields         = true;
 
 		$this->init_form_fields();
-		$this->init_settings();
 
 		$this->supports = ['products'];
 
-		$this->title = esc_attr( $this->settings['title'] );
+		$this->title = esc_attr( RFW_Data::get_settings( 'title' ) );
 		$this->add_actions();
 
-		if ( is_wc_endpoint_url( 'order-pay' ) || is_checkout() ) {
-			add_action( 'wp_enqueue_scripts', [ $this, 'register_scripts' ] );
-		}
+		add_action( 'wp_enqueue_scripts', [ $this, 'register_scripts' ] );
 	}
 
 	/**
 	 * Register Resolve and plugin's JS script.
 	 */
 	public function register_scripts() {
-		wp_enqueue_script( 'rfw-vendor-js', '//app.paywithresolve.com/js/resolve.js', [], false, true );
+		wp_enqueue_script( 'rfw-vendor-js', '//app.paywithresolve.com/js/resolve.js', [], RFW_PLUGIN_ID, true );
 
-		wp_enqueue_script( 'rfw-client-js', RFW_DIR_URL . '/assets/rfw-client.js', ['jquery'], false, true );
+		wp_enqueue_script( 'rfw-client-js', RFW_DIR_URL . '/assets/rfw-client.js', [ 'jquery' ], RFW_PLUGIN_ID, true );
 
-		wp_localize_script( 'rfw-client-js', 'RFWPaymentGateway', [
-			'ajax_url' => admin_url( 'admin-ajax.php' )
-		]);
-	}
-
-	/**
-	 * Return true if payment gateway needs further setup.
-	 *
-	 * @override
-	 * @return bool
-	 */
-	public function needs_setup() {
-		if ( ! isset( $this->settings['merchant-id'] ) || ! isset( $this->settings['api-key'] ) ) {
-			return true;
-		}
-
-		return empty( $this->settings['merchant-id'] ) || empty( $this->settings['api-key'] );
+		wp_localize_script(
+			'rfw-client-js',
+			'RFWPaymentGateway',
+			[
+				'ajax_url'    => admin_url( 'admin-ajax.php' ),
+				'merchant_ID' => RFW_Data::get_settings( 'webshop-merchant-id', true ),
+				'test_mode'   => RFW_Data::test_mode(),
+			]
+		);
 	}
 
 	/**
 	 * Register different actions.
 	 */
 	private function add_actions() {
-		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options'] );
+		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, [ $this, 'process_admin_options' ] );
 		add_action( 'woocommerce_receipt_' . $this->id, [ $this, 'do_receipt_page' ] );
 
 		add_action( 'woocommerce_thankyou_' . $this->id, [ $this, 'show_confirmation_message' ] );
@@ -69,22 +60,23 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 
 		add_filter( 'woocommerce_available_payment_gateways', [ $this, 'maybe_disable' ], 90, 1 );
 
-		// single order hooks
 		add_action( 'woocommerce_order_item_add_action_buttons', [ $this, 'display_capture_button' ], 10, 1 );
 		add_action( 'save_post', [ $this, 'process_capture' ] );
 	}
 
 	/**
-	 * Define gateway's fields visible at WooCommerce's Settings page and
-	 * Checkout tab.
+	 * Load settings fields from a separate file.
+	 *
+	 * @return  array  Plugin setting fields.
 	 */
 	public function init_form_fields() {
-		$this->form_fields = include( RFW_DIR_PATH . '/includes/settings/rfw-settings-fields.php' );
+		$this->form_fields = include RFW_DIR_PATH . '/includes/settings/rfw-settings-fields.php';
 	}
 
 	/**
-	 * Echoes gateway's options (Checkout tab under WooCommerce's settings).
-	 * @override
+	 * Load settings for the payment gateway plugin.
+	 *
+	 * @return  mixed  Settings HTML.
 	 */
 	public function admin_options() {
 		?>
@@ -97,66 +89,82 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Display description of the gateway on the checkout page.
-	 * @override
+	 * Show a custom description from plugin settings under payment name on a list of available payments.
+	 *
+	 * @return  mixed Description wrapped in HTML.
 	 */
 	public function payment_fields() {
-		if ( isset( $this->settings['description-msg'] ) && !empty( $this->settings['description-msg'] ) ) {
-			echo '<p>' . wptexturize( $this->settings['description-msg'] ) . '</p>';
+		echo '<p>' . esc_html__( 'Hassle-free terms with no hidden fees. Sign up and get approved today. ', 'resolve' ) . RFW_Data::display_modal_link() . '</p>';
+
+		$desc = RFW_Data::get_settings( 'description-msg' );
+		if ( $desc ) {
+			echo '<p>' . wptexturize( $desc ) . '</p>';
 		}
 
-		if ( $this->settings['in-test-mode'] === 'yes' ) {
-			$test_mode_notice = '<p><b>' . __( 'Resolve Payment Gateway is currently in test mode, disable it for live web shop.', 'resolve' ); '</b></p>';
-			$test_mode_notice = apply_filters( 'rfw_payment_description_test_mode_notice', $test_mode_notice );
+		if ( RFW_Data::test_mode() ) {
+			$test_mode_notice = apply_filters( 'rfw_payment_description_test_mode_notice', __( 'Resolve Payment Gateway is currently in test mode, disable it for live web shop.', 'resolve' ) );
 
-			if ( !empty( $test_mode_notice ) ) {
-				echo $test_mode_notice;
+			if ( ! empty( $test_mode_notice ) ) {
+				echo '<p><b>' . esc_html( $test_mode_notice ) . '</b></p>';
 			}
 		}
 	}
 
 	/**
-	 * Echo confirmation message on the 'thank you' page.
+	 * Show confirmation page custom message from plugin settings.
+	 *
+	 * @return  mixed  Message wrapped in HTML.
 	 */
 	public function show_confirmation_message() {
-		if ( isset( $this->settings['confirmation-msg'] ) && !empty( $this->settings['confirmation-msg'] ) ) {
-			echo '<p>' . wptexturize( $this->settings['confirmation-msg'] ) . '</p>';
+		$conf = RFW_Data::get_settings( 'confirmation-msg' );
+		if ( $conf ) {
+			echo '<p>' . wptexturize( $conf ) . '</p>';
 		}
 	}
 
 	/**
-	 * Echo redirect message on the 'receipt' page.
+	 * Show receipt page custom message from plugin settings.
+	 *
+	 * @return  mixed  Message wrapped in HTML.
 	 */
 	private function show_receipt_message() {
-		if ( isset( $this->settings['receipt-redirect-msg'] ) && !empty( $this->settings['receipt-redirect-msg'] ) ) {
-			echo '<p>' . wptexturize( $this->settings['receipt-redirect-msg'] ) . '</p>';
+		$receipt = RFW_Data::get_settings( 'receipt-redirect-msg' );
+		if ( $receipt ) {
+			echo '<p>' . wptexturize( $receipt ) . '</p>';
 		}
 	}
 
 	/**
-	 * Trigger actions for 'receipt' ('order-pay') page.
-	 * @param int $order_id
+	 * Display additional info on receipt page.
+	 *
+	 * @param   int   $order_id  WooCommerce order ID.
+	 *
+	 * @return  mixed            Receipt page additional HTML.
 	 */
 	public function do_receipt_page( $order_id ) {
 		$order = wc_get_order( $order_id );
 		if ( ! $order ) {
 			return false;
 		}
+
+		do_action( 'rfw_before_receipt_message', $order );
 		?>
 		<form id="rfw-payment-form" action="" method="post">
 			<input id="rfw-order-id" type="hidden" value="<?php echo esc_attr( $order_id ); ?>">
 			<?php wp_nonce_field( 'rfw_checkout_action', 'rfw_nonce' ); ?>
-			<?php if ( $this->settings['auto-redirect'] !== 'yes' ): ?>
 
+			<?php if ( ! RFW_Data::is_auto_redirect() ): ?>
 				<?php $this->show_receipt_message(); ?>
-	
+
 				<button type="button" id="rfw-pay" class="button btn-primary">
 					<?php esc_html_e( 'Pay', 'resolve' ); ?>
 				</button>
-
 			<?php endif; ?>
+
 		</form>
 		<?php
+
+		do_action( 'rfw_after_receipt_message', $order );
 	}
 
 
@@ -174,8 +182,8 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 
 		// Remove payment gateway if any of items in cart are on backorder.
 		if ( RFW_Data::is_backorder_pay_disabled() ) {
-			foreach( WC()->cart->get_cart() as $cart_item ){
-				if( $cart_item['data']->is_on_backorder( $cart_item['quantity'] ) ) {
+			foreach ( WC()->cart->get_cart() as $cart_item ) {
+				if ( $cart_item['data']->is_on_backorder( $cart_item['quantity'] ) ) {
 					unset( $available_gateways['resolve'] );
 					break;
 				}
@@ -198,23 +206,28 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Process the payment and return the result.
-	 * @override
-	 * @param string $order_id
-	 * @return array
+	 * Manually handle payment processing.
+	 *
+	 * @param   int   $order_id  WooCommerce order ID.
+	 *
+	 * @return  array            Array of data required to process payment.
 	 */
 	public function process_payment( $order_id ) {
 		$order = new WC_Order( $order_id );
 
 		return [
 			'result'   => 'success',
-			'redirect' => $order->get_checkout_payment_url( true )
+			'redirect' => $order->get_checkout_payment_url( true ),
 		];
 	}
 
+
 	/**
-	 * Try to extract charge and loan ID from URL, and save them to the order.
-	 * @param int $order_id
+	 * When loading the thank you page handle information that was sent back in GET and maybe execute capture.
+	 *
+	 * @param   int  $order_id  WooCommerce order ID.
+	 *
+	 * @return  void
 	 */
 	public function process_response( $order_id ) {
 		$order = wc_get_order( $order_id );
@@ -228,7 +241,8 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 			return; // Data aleady saved, bail early.
 		}
 
-		$note = __( 'Order successfully processed by the Resolve payment system', 'resolve' );
+		// As per official Resolve documentation if a customer arrives to this page the payment is successfully authorized.
+		$note = __( 'Order successfully authorized by the Resolve payment system', 'resolve' );
 
 		$charge_id = filter_input( INPUT_GET, 'charge_id', FILTER_SANITIZE_STRING );
 		if ( $charge_id ) {
@@ -245,14 +259,22 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 		$order->add_order_note( $note );
 		$order->save();
 
+		do_action( 'rfw_order_payment_authorized', $order, $charge_id, $loan_id );
+
 		if ( RFW_Data::is_mode_capture() ) {
+			$charge_id = $charge_id ?: $loan_id;
+
 			$this->send_capture_request( $charge_id, $order );
 		}
 	}
 
+
 	/**
-	 * Register capture button for single order admin view.
-	 * @param WC_Order $order
+	 * Displays a button for capturing funds in the order admin view.
+	 *
+	 * @param   WC_Order  $order  Object of the WooCommerce order.
+	 *
+	 * @return  mixed             Capture button HTML.
 	 */
 	public function display_capture_button( $order ) {
 		if ( $this->id !== $order->get_payment_method() ) {
@@ -275,8 +297,13 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 		<?php
 	}
 
+
 	/**
-	 * Process the capture action if possible.
+	 * Process capture request when Capture button click in order admin view.
+	 *
+	 * @param   int  $post_id  Order ID
+	 *
+	 * @return  void
 	 */
 	public function process_capture( $post_id ) {
 		if ( get_post_type( $post_id ) !== 'shop_order' ) {
@@ -284,29 +311,24 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 		}
 
 		// is the capture button clicked?
-		if ( ! isset( $_POST['rfw_capture_payment'] ) ) {
+		if ( (string) filter_input( INPUT_POST, 'rfw_capture_payment', FILTER_SANITIZE_STRING ) !== 'yes' ) {
+			RFW_Logger::log( 'Cannot find data about Capture button when trying to capture funds for order: ' . $post_id, 'critical' );
 			return;
 		}
 
-		if ( $_POST['rfw_capture_payment'] !== 'yes' ) {
-			return;
-		}
-
-		// check the nonce!
-		if ( ! isset( $_POST['rfw_capture_nonce'] ) ) {
-			return;
-		}
-
-		if ( ! wp_verify_nonce( $_POST['rfw_capture_nonce'], 'rfw_capture_payment' ) ) {
+		if ( ! wp_verify_nonce( filter_input( INPUT_POST, 'rfw_capture_nonce', FILTER_SANITIZE_STRING ), 'rfw_capture_payment' ) ) {
+			RFW_Logger::log( 'Failed veryfing the nonce when trying to capture funds for order: ' . $post_id, 'critical' );
 			return;
 		}
 
 		$order = wc_get_order( $post_id );
 		if ( ! $order ) {
+			RFW_Logger::log( 'Cannot find order with iD: ' . $post_id, 'critical' );
 			return;
 		}
 
 		if ( $order->get_meta( 'rfw_payment_captured', true ) === 'yes' ) {
+			RFW_Logger::log( 'Payment has already been captured for order: ' . $post_id, 'critical' );
 			return;
 		}
 
@@ -315,6 +337,8 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 			$charge_id = $order->get_meta( 'rfw_loan_id', true );
 
 			if ( ! $charge_id ) {
+
+				RFW_Logger::log( 'Cannot find a valid charge ID for order: ' . $post_id, 'critical' );
 				return;
 			}
 		}
@@ -322,28 +346,35 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 		$this->send_capture_request( $charge_id, $order );
 	}
 
+
 	/**
-	 * Send a capture request to the API.
-	 * @param  string $charge_id
-	 * @return WP_Error|array
+	 * Formats the data and sends a capture request.
+	 *
+	 * @param   string    $charge_id  ID of the order in Resolve system, used to capture funds.
+	 * @param   WC_Order  $order      Object of the order in WooCommerce.
+	 *
+	 * @return  void
 	 */
 	private function send_capture_request( $charge_id, $order ) {
 		$url_format = 'https://%s:%s@%s.resolvepay.com/api/charges/%s/capture';
 
 		$merchant_id = RFW_Data::get_settings( 'webshop-merchant-id', true );
-		$secret_key = RFW_Data::get_settings( 'webshop-api-key', true );
+		$api_key     = RFW_Data::get_settings( 'webshop-api-key', true );
 
-		$mode = $this->settings['in-test-mode'] === 'yes' ? 'app-sandbox' : 'app';
-		$url  = sprintf( $url_format, $merchant_id, $secret_key, $mode, $charge_id );
+		$mode = RFW_Data::test_mode() ? 'app-sandbox' : 'app';
+		$url  = sprintf( $url_format, $merchant_id, $api_key, $mode, $charge_id );
 		$args = [
 			'headers' => [
-				'Authorization' => 'Basic ' . base64_encode( $merchant_id . ':' . $secret_key )
-			]
+				'Authorization' => 'Basic ' . base64_encode( $merchant_id . ':' . $api_key ),
+			],
 		];
-		
+
 		$response = wp_remote_post( $url, $args );
 
+		RFW_Logger::log( 'Capturing order: ' . $order->get_id() . ' responded with: ' . stripslashes( wp_json_encode( $response ) ), 'critical' );
+
 		if ( is_wp_error( $response ) ) {
+			RFW_Logger::log( 'Capturing order: ' . $order->get_id() . ' failed with message: ' . $response->get_error_message(), 'critical' );
 			$order->add_order_note( sprintf( __( 'Failed to capture the payment! Error message: %s', 'resolve' ), '<b>' . $response->get_error_message() . '</b>' ) );
 		} else {
 			try {
@@ -351,19 +382,20 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 				$body = json_decode( $response['body'], true );
 
 				if ( isset( $body['error'] ) ) {
+					RFW_Logger::log( 'Capturing order: ' . $order->get_id() . ' failed with message: ' . $body['error']['message'], 'critical' );
 					$order->add_order_note( sprintf( __( 'Failed to capture the payment! Resolve returned an error message: %s', 'resolve' ), '<b>' . $body['error']['message'] . '</b>' ) );
 				} else {
-					$order->set_status( 'processing', sprintf( __( 'The payment was successfully captured! Resolve ID: %s.', 'resolve' ), '<b>' . $body['number'] . '</b>' ) );
+					do_action( 'rfw_order_payment_captured', $order );
+
+					$order->set_status( apply_filters( 'rfw_payment_captured_order_status', 'processing' ), sprintf( __( 'The payment was successfully captured! Resolve ID: %s.', 'resolve' ), '<b>' . $body['number'] . '</b>' ) );
 
 					$order->payment_complete( $body['number'] );
 					$order->add_meta_data( 'rfw_payment_captured', 'yes', true );
 					$order->save();
 				}
 			} catch ( Exception $e ) {
-				$note  = __( 'Failed to capture the payment because of the unknown error.', 'resolve' );
-				$order->add_order_note( $note );
+				RFW_Logger::log( 'Saving data for captured order: ' . $order->get_id() . ' interrupted with message: ' . $e->getMessage(), 'critical' );
 			}
-
 		}
 	}
 }

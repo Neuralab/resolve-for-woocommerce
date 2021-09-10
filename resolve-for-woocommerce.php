@@ -15,7 +15,7 @@
  * Requires at least:    5.0
  * Requires PHP:         7.2
  * WC requires at least: 3.3
- * WC tested up to:      5.6.0
+ * WC tested up to:      5.8.1
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -26,7 +26,7 @@ defined( 'ABSPATH' ) || exit;
  * @return boolean
  */
 function rfw_is_woocommerce_active() {
-	return in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) );
+	return in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true );
 }
 
 /**
@@ -54,20 +54,15 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 	class RFW_Main {
 
 		/**
-		 * Current plugin's version.
-		 * @var string
-		 */
-		const VERSION = '0.9';
-
-		/**
 		 * Instance of the current class, null before first usage.
 		 * @var RFW_Main
 		 */
 		protected static $_instance = null;
 
 		/**
-		 * Class constructor, initialize constants and settings.
-		 * @since 0.1
+		 * Class constructor
+		 *
+		 * @return  void
 		 */
 		protected function __construct() {
 			RFW_Main::register_constants();
@@ -87,10 +82,17 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 			add_filter( 'plugin_action_links_' . RFW_PLUGIN_BASENAME, [ $this, 'add_settings_link' ] );
 
 			add_action( 'admin_enqueue_scripts', [ $this, 'register_admin_script' ] );
+
+			add_action( 'admin_init', [ $this, 'check_settings' ], 20 );
+			add_action( 'admin_init', [ $this, 'check_for_other_resolve_gateways' ], 1 );
+			add_action( 'activated_plugin', [ $this, 'set_resolve_plugins_check_required' ] );
+			add_action( 'woocommerce_admin_field_payment_gateways', [ $this, 'set_resolve_plugins_check_required' ] );
 		}
 
 		/**
-		 * Register plugin's constants.
+		 * Register constants
+		 *
+		 * @return  void
 		 */
 		public static function register_constants() {
 			if ( ! defined( 'RFW_PLUGIN_ID' ) ) {
@@ -114,9 +116,11 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 		}
 
 		/**
-		 * Register payment gateway's class as a new method of payment.
-		 * @param array $methods
-		 * @return array
+		 * Add Resolve payment gateway for registering in WooCommerce.
+		 *
+		 * @param   array  $methods  Array of payment methods registered.
+		 *
+		 * @return  array            Array of payment methods including Resolve.
 		 */
 		public function register_gateway( $methods ) {
 			$methods[] = 'RFW_Payment_Gateway';
@@ -124,44 +128,149 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 		}
 
 		/**
-		 * Register admin JS script.
+		 * Register admin scripts.
+		 *
+		 * @return  void
 		 */
 		public function register_admin_script() {
-			wp_enqueue_script( 'rfw-admin-js', RFW_DIR_URL . '/assets/rfw-admin.js', [ 'jquery' ], false, true );
+			wp_enqueue_script( 'rfw-admin-js', RFW_DIR_URL . '/assets/rfw-admin.js', [ 'jquery' ], RFW_PLUGIN_VERSION, true );
 
-			wp_localize_script( 'rfw-admin-js', 'RFWPaymentGateway', [
-				'ajax_url'       => admin_url( 'admin-ajax.php' ),
-				'capture_notice' => __( 'Are you sure you want to capture this payment?', 'resolve' ),
-			]);
+			wp_localize_script(
+				'rfw-admin-js',
+				'RFWPaymentGateway',
+				[
+					'ajax_url'       => admin_url( 'admin-ajax.php' ),
+					'capture_notice' => __( 'Are you sure you want to capture this payment?', 'resolve' ),
+				]
+			);
 		}
 
 		/**
 		 * Adds the link to the settings page on the plugins WP page.
-		 * @param array   $links
-		 * @return array
+		 *
+		 * @param   array  $links  Array of plugin action links.
+		 *
+		 * @return  array          Edited array of action link including setting link.
 		 */
 		public function add_settings_link( $links ) {
-			$settings_link = '<a href="' . RFW_ADMIN_SETTINGS_URL . '">' . __( 'Settings', 'woocommerce' ) . '</a>';
+			$settings_link = '<a href="' . RFW_ADMIN_SETTINGS_URL . '">' . __( 'Settings', 'resolve' ) . '</a>';
 			array_unshift( $links, $settings_link );
 
 			return $links;
 		}
 
 		/**
-		 * Installation procedure.
-		 * @static
+		 * Check gateway settings and dispatch notice.
+		 *
+		 * @return  void
+		 */
+		public function check_settings() {
+			// If payment gateway is not enabled bail.
+			if ( ! RFW_Data::enabled() ) {
+				return;
+			}
+
+			// Check if gateway is currently in test mode.
+			if ( RFW_Data::test_mode() ) {
+				self::admin_notice( __( 'Resolve Payment Gateway is currently in test mode, disable it for live web shop.', 'resolve' ), 'warning' );
+			}
+
+			// Check if all setting keys required for gateway to work are set.
+			if ( ! RFW_Data::required_keys_set() ) {
+				self::admin_notice( __( 'Resolve is currenly disabled, please check that you have Merchant ID and API key set in the plugin settings.', 'resolve' ), 'warning' );
+			}
+		}
+
+		/**
+		 * Check if there are other Resolve gateways.
+		 *
+		 * @return  void
+		 */
+		public static function check_for_other_resolve_gateways() {
+			if ( ! get_option( 'resolve_plugins_check_required' ) ) {
+				return;
+			}
+
+			delete_option( 'resolve_plugins_check_required' );
+
+			// Check if there already is payment method with id "resolve".
+			$payment_gateways = WC_Payment_Gateways::instance()->payment_gateways();
+
+			if ( isset( $payment_gateways[ RFW_PLUGIN_ID ] ) && ! $payment_gateways[ RFW_PLUGIN_ID ] instanceof RFW_Payment_Gateway ) {
+				self::admin_notice( __( 'You can only have one Resolve payment gateway active at the same time. Plugin "Resolve for WooCommerce" has been deactivated.', 'resolve' ) );
+
+				self::deactivate_self();
+			}
+		}
+
+		/**
+		 * Set that the check for other plugins is required.
+		 *
+		 * @return  void
+		 */
+		public static function set_resolve_plugins_check_required() {
+			update_option( 'resolve_plugins_check_required', 'yes' );
+		}
+
+		/**
+		 * Deactivate plugin.
+		 *
+		 * @return  void
+		 */
+		public static function deactivate_self() {
+			remove_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), [ self::get_instance(), 'add_settings_link' ] );
+			remove_action( 'admin_init', [ self::get_instance(), 'check_settings' ], 20 );
+
+			deactivate_plugins( plugin_basename( __FILE__ ) );
+			unset( $_GET['activate'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+
+		/**
+		 * Add an admin notice
+		 *
+		 * @param  string  $notice  Notice content.
+		 * @param  string  $type    Notice type.
+		 *
+		 * @return  void
+		 */
+		public static function admin_notice( $notice, $type = 'error' ) {
+			add_action(
+				'admin_notices',
+				function() use ( $notice, $type ) {
+					printf( '<div class="notice notice-%2$s"><p>%1$s</p></div>', $notice, $type );
+				}
+			);
+		}
+
+		/**
+		 * Delete gateway settings. Return true if option is successfully deleted or
+		 * false on failure or if option does not exist.
+		 *
+		 * @return bool
+		 */
+		public static function delete_settings() {
+			return delete_option( 'woocommerce_' . RFW_PLUGIN_ID . '_settings' ) && delete_option( 'resolve_plugins_check_required' );
+		}
+
+
+		/**
+		 * Install actions.
+		 *
+		 * @return  void
 		 */
 		public static function install() {
 			if ( ! current_user_can( 'activate_plugins' ) ) {
 				return false;
 			}
 
-			RFW_Main::register_constants();
+			self::set_resolve_plugins_check_required();
+			self::register_constants();
 		}
 
 		/**
-		 * Uninstallation procedure.
-		 * @static
+		 * Uninstall actions.
+		 *
+		 * @return  void
 		 */
 		public static function uninstall() {
 			if ( ! current_user_can( 'activate_plugins' ) ) {
