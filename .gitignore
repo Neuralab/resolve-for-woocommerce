@@ -1,0 +1,10 @@
+# NPM #
+##########
+mix-manifest.json
+package-lock.json
+npm-debug.log
+node_modules
+
+# Generated assets #
+####################
+/assets/dist

@@ -21,7 +21,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 
 		$this->init_form_fields();
 
-		$this->supports = ['products'];
+		$this->supports = [ 'products' ];
 
 		$this->title = esc_attr( RFW_Data::get_settings( 'title' ) );
 		$this->add_actions();
@@ -35,7 +35,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 	public function register_scripts() {
 		wp_enqueue_script( 'rfw-vendor-js', '//app.paywithresolve.com/js/resolve.js', [], RFW_PLUGIN_ID, true );
 
-		wp_enqueue_script( 'rfw-client-js', RFW_DIR_URL . '/assets/rfw-client.js', [ 'jquery' ], RFW_PLUGIN_ID, true );
+		wp_enqueue_script( 'rfw-client-js', RFW_DIR_URL . '/assets/dist/js/rfw-client.js', [ 'jquery' ], RFW_PLUGIN_ID, true );
 
 		wp_localize_script(
 			'rfw-client-js',

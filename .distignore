@@ -1,0 +1,15 @@
+.distignore
+.gitignore
+.editorconfig
+.git
+.github
+.wordpress-org
+assets/src
+node_modules
+phpcs.xml
+README.md
+LICENSE
+package.json
+package-lock.json
+mix-manifest.json
+webpack.mix.js

@@ -10,7 +10,7 @@
  * Text Domain:       resolve
  * Domain Path:       /languages
  *
- * Version: 0.9
+ * Version: 1.0
  *
  * Requires at least:    5.0
  * Requires PHP:         7.2
@@ -37,7 +37,7 @@ function rfw_is_woocommerce_active() {
 function rfw_admin_notice_missing_woocommerce() {
 	global $current_screen;
 
-	if( $current_screen->parent_base === 'plugins' ) {
+	if ( $current_screen->parent_base === 'plugins' ) {
 		?>
 		<div class="notice notice-error">
 			<p><?php _e( 'Please install and activate <a href="http://www.woothemes.com/woocommerce/" target="_blank">WooCommerce</a> before activating Resolve payment gateway!', 'resolve' ); ?></p>
@@ -55,9 +55,10 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 
 		/**
 		 * Instance of the current class, null before first usage.
+		 *
 		 * @var RFW_Main
 		 */
-		protected static $_instance = null;
+		protected static $instance = null;
 
 		/**
 		 * Class constructor
@@ -65,7 +66,7 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 		 * @return  void
 		 */
 		protected function __construct() {
-			RFW_Main::register_constants();
+			self::register_constants();
 
 			// Utilites.
 			require_once 'includes/utilities/class-rfw-data.php';
@@ -99,7 +100,7 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 				define( 'RFW_PLUGIN_ID', 'resolve' );
 			}
 			if ( ! defined( 'RFW_PLUGIN_VERSION' ) ) {
-				define( 'RFW_PLUGIN_VERSION', '0.9' );
+				define( 'RFW_PLUGIN_VERSION', '1.0' );
 			}
 			if ( ! defined( 'RFW_PLUGIN_BASENAME' ) ) {
 				define( 'RFW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -133,7 +134,7 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 		 * @return  void
 		 */
 		public function register_admin_script() {
-			wp_enqueue_script( 'rfw-admin-js', RFW_DIR_URL . '/assets/rfw-admin.js', [ 'jquery' ], RFW_PLUGIN_VERSION, true );
+			wp_enqueue_script( 'rfw-admin-js', RFW_DIR_URL . '/assets/dist/js/rfw-admin.js', [ 'jquery' ], RFW_PLUGIN_VERSION, true );
 
 			wp_localize_script(
 				'rfw-admin-js',
@@ -237,7 +238,7 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 			add_action(
 				'admin_notices',
 				function() use ( $notice, $type ) {
-					printf( '<div class="notice notice-%2$s"><p>%1$s</p></div>', $notice, $type );
+					printf( '<div class="notice notice-%2$s"><p>%1$s</p></div>', $notice, $type ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
 			);
 		}
@@ -256,7 +257,7 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 		/**
 		 * Install actions.
 		 *
-		 * @return  void
+		 * @return  bool/void
 		 */
 		public static function install() {
 			if ( ! current_user_can( 'activate_plugins' ) ) {
@@ -270,7 +271,7 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 		/**
 		 * Uninstall actions.
 		 *
-		 * @return  void
+		 * @return  bool/void
 		 */
 		public static function uninstall() {
 			if ( ! current_user_can( 'activate_plugins' ) ) {
@@ -282,7 +283,8 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 
 		/**
 		 * Deactivation function.
-		 * @static
+		 *
+		 * @return  bool/void
 		 */
 		public static function deactivate() {
 			if ( ! current_user_can( 'activate_plugins' ) ) {
@@ -294,19 +296,21 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 
 		/**
 		 * Return class instance.
-		 * @static
+		 *
 		 * @return RFW_Main
 		 */
 		public static function get_instance() {
-			if ( is_null( self::$_instance ) ) {
-				self::$_instance = new self;
+			if ( is_null( self::$instance ) ) {
+				self::$instance = new self();
 			}
-			return self::$_instance;
+
+			return self::$instance;
 		}
 
 		/**
 		 * Cloning is forbidden.
-		 * @since 0.1
+		 *
+		 * @return  void
 		 */
 		public function __clone() {
 			return wp_die( 'Cloning is forbidden!' );
@@ -314,7 +318,8 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 
 		/**
 		 * Unserializing instances of this class is forbidden.
-		 * @since 0.1
+		 *
+		 * @return  void
 		 */
 		public function __wakeup() {
 			return wp_die( 'Unserializing instances is forbidden!' );
@@ -323,8 +328,8 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 	}
 }
 
-register_activation_hook( __FILE__, array( 'RFW_Main', 'install' ) );
-register_uninstall_hook( __FILE__, array( 'RFW_Main', 'uninstall' ) );
-register_deactivation_hook( __FILE__, array( 'RFW_Main', 'deactivate' ) );
+register_activation_hook( __FILE__, [ 'RFW_Main', 'install' ] );
+register_uninstall_hook( __FILE__, [ 'RFW_Main', 'uninstall' ] );
+register_deactivation_hook( __FILE__, [ 'RFW_Main', 'deactivate' ] );
 
-add_action( 'plugins_loaded', array( 'RFW_Main', 'get_instance' ), 0 );
+add_action( 'plugins_loaded', [ 'RFW_Main', 'get_instance' ], 0 );

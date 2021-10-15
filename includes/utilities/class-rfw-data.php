@@ -3,8 +3,6 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * RFW_Data class
- *
- * @since 0.9
  */
 class RFW_Data {
 	/**
@@ -12,7 +10,7 @@ class RFW_Data {
 	 *
 	 * @var array
 	 */
-	private static $settings = array();
+	private static $settings = [];
 
 	/**
 	 * Load gateway settings from the database.
@@ -20,7 +18,7 @@ class RFW_Data {
 	 * @return void
 	 */
 	public static function load_settings() {
-		self::$settings = get_option( 'woocommerce_' . RFW_PLUGIN_ID . '_settings', array() );
+		self::$settings = get_option( 'woocommerce_' . RFW_PLUGIN_ID . '_settings', [] );
 	}
 
 	/**
@@ -245,5 +243,4 @@ class RFW_Data {
 	public static function display_modal_link( $label = null ) {
 		return '<a href="#" id="rfw-apply">' . ( $label ?: __( 'Learn more', 'resolve' ) ) . '</a>';
 	}
-
 }

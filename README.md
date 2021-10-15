@@ -1,9 +1,9 @@
 
 # Resolve for WooCommerce.
 
-Resolve at its core improves traditional and cumbersome b2b payments. We facilitate deferred payments between businesses, but in a way that benefits both businesses. This deferred payment is commonly referred to as ‘net terms’ in many industries, and it describes a payment delay of 30, 60, or 90 days that has come to be expected by business customers. The issue for the business seller is that they are required to act like a bank. They need to give short-term credit to their customers and ‘float’ these net terms invoice payments. Resolve takes care of every aspect of a business being able to offer net terms as a payment option. We solve for the credit checking process, provide invoice financing, automate accounts receivable processes, and speed up payments processing.
+Resolve is a complete B2B credit management and net terms solution that helps your customers get net terms while you get paid faster. If you’re looking for a better way to manage the nightmare of customer credit checks, net terms risk, payments, and cash flow woes - Resolve is here to help. We believe your business shouldn’t act like a bank unless you’re actually a bank. Get paid by Resolve in a day, and we’ll let your customers pay us in 30, 60, or 90 days. However your customers buy from you, e-commerce or off-line, we've got you covered.
 
-Resolve enables b2b deferred payments through our end-to-end and embedded ‘credit billing’ solution. This refers to Resolve’s integration with an existing financial tech stack to automate and streamline all of the tasks associated with offering net terms. The results are simpler net terms that increase our customer’s cash flow and b2b sales, while reducing their financial risk and accounts receivable resourcing needs.
+This extension allows B2B merchants to offer Net Terms to their customers without the hassle of running credit checks, floating short-term credit, chasing payments, and processing payments. When customers request to pay by invoice (e.g., Net 30), Resolve credit checks them and assesses their risk profile. Once approved for net terms, customers can select the “Pay with Net Terms” payment selection in the checkout, which gives them 30-90 days to pay while you get paid sooner.
 
 ## Installation
 #### MINIMUM REQUIREMENTS
@@ -15,8 +15,9 @@ Resolve enables b2b deferred payments through our end-to-end and embedded ‘cre
 
 #### INSTALL
 
-1. Visit Plugins > Add New.
-2. Search for "Resolve for WooCommerce".
-3. Activate Resolve for WooCommerce.
+1. Contact [Resolve](https://resolvepay.com/) team and set up your merchant account.
+2. Visit Plugins > Add New.
+3. Search for "Resolve for WooCommerce".
+4. Activate Resolve for WooCommerce.
 
 For more installation options check the [official WordPress documentation](https://wordpress.org/support/article/managing-plugins/#manual-plugin-installation) about installing plugins.
