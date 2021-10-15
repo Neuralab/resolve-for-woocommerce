@@ -4,7 +4,6 @@
 .git
 .github
 .wordpress-org
-assets/src
 node_modules
 phpcs.xml
 README.md
