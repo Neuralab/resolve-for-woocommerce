@@ -23,7 +23,7 @@ class RFW_Ajax_Interface {
 	public function get_checkout_data_via_ajax() {
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'rfw_checkout_action' ) ) {
 			RFW_Logger::log( 'Failed verifying nonce when fetching checkout data.', 'critical' );
-			wp_send_json_error( ['message' => 'Invalid nonce provided.'] );
+			wp_send_json_error( [ 'message' => 'Invalid nonce provided.' ] );
 		}
 
 		$order_id = filter_input( INPUT_POST, 'order_id', FILTER_SANITIZE_NUMBER_INT );
@@ -33,7 +33,7 @@ class RFW_Ajax_Interface {
 			wp_send_json_error( [ 'message' => 'Invalid order ID provided.' ] );
 		}
 
-		$gateway_settings = get_option( 'woocommerce_' . RFW_PLUGIN_ID . '_settings', array() );
+		$gateway_settings = get_option( 'woocommerce_' . RFW_PLUGIN_ID . '_settings', [] );
 		if ( ! $gateway_settings ) {
 			RFW_Logger::log( 'Failed fetching payment gateway settings when fetching checkout data.', 'critical' );
 			wp_send_json_error( [ 'message' => 'Unable to obtain gateway settings.' ] );
@@ -43,7 +43,7 @@ class RFW_Ajax_Interface {
 
 		if ( ! $data ) {
 			RFW_Logger::log( 'Failed fetching checkout data.', 'critical' );
-			wp_send_json_error( ['message' => 'Failed fetching checkout data.' ] );
+			wp_send_json_error( [ 'message' => 'Failed fetching checkout data.' ] );
 		}
 
 		if ( RFW_Data::test_mode() ) {
@@ -51,15 +51,15 @@ class RFW_Ajax_Interface {
 		}
 
 		$data['customer'] = RFW_Data::get_customer_data( $order );
-		if ( ! $data['customer']) {
+		if ( ! $data['customer'] ) {
 			RFW_Logger::log( 'Failed fetching customer data.', 'critical' );
-			wp_send_json_error( ['message' => 'Failed fetching customer data.' ] );
+			wp_send_json_error( [ 'message' => 'Failed fetching customer data.' ] );
 		}
 
 		$data['items'] = RFW_Data::get_items_data( $order );
 		if ( ! $data['items'] ) {
 			RFW_Logger::log( 'Failed fetching items data.', 'critical' );
-			wp_send_json_error( ['message' => 'Failed fetching items data.' ] );
+			wp_send_json_error( [ 'message' => 'Failed fetching items data.' ] );
 		}
 
 		wp_send_json_success( $data );

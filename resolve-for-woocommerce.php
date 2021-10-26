@@ -4,7 +4,7 @@
  * Plugin URI:        https://resolvepay.com/
  * Description:       A payment gateway for Resolve.
  * Author:            Resolve
- * Author URI:        https://resolvepay.com/
+ * Author URI:        https://resolvepay.com/about/
  * License:           GPL v3 or later
  * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain:       resolve
@@ -40,7 +40,8 @@ function rfw_admin_notice_missing_woocommerce() {
 	if ( $current_screen->parent_base === 'plugins' ) {
 		?>
 		<div class="notice notice-error">
-			<p><?php _e( 'Please install and activate <a href="http://www.woothemes.com/woocommerce/" target="_blank">WooCommerce</a> before activating Resolve payment gateway!', 'resolve' ); ?></p>
+			<?php // translators: anchor tags. ?>
+			<p><?php echo wp_kses_post( esc_html__( 'Please install and activate %1$s WooCommerce %2$s before activating Resolve payment gateway!', 'resolve' ), '<a href="http://www.woothemes.com/woocommerce/" target="_blank">', '</a>' ); ?></p>
 		</div>
 		<?php
 	}

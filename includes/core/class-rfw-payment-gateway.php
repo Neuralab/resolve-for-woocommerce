@@ -94,11 +94,11 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 	 * @return  mixed Description wrapped in HTML.
 	 */
 	public function payment_fields() {
-		echo '<p>' . esc_html__( 'Hassle-free terms with no hidden fees. Sign up and get approved today. ', 'resolve' ) . RFW_Data::display_modal_link() . '</p>';
+		echo '<p>' . esc_html__( 'Hassle-free terms with no hidden fees. Sign up and get approved today. ', 'resolve' ) . wp_kses_post( RFW_Data::display_modal_link() ) . '</p>';
 
 		$desc = RFW_Data::get_settings( 'description-msg' );
 		if ( $desc ) {
-			echo '<p>' . wptexturize( $desc ) . '</p>';
+			echo '<p>' . wp_kses_post( $desc ) . '</p>';
 		}
 
 		if ( RFW_Data::test_mode() ) {
@@ -118,7 +118,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 	public function show_confirmation_message() {
 		$conf = RFW_Data::get_settings( 'confirmation-msg' );
 		if ( $conf ) {
-			echo '<p>' . wptexturize( $conf ) . '</p>';
+			echo '<p>' . wp_kses_post( $conf ) . '</p>';
 		}
 	}
 
@@ -130,7 +130,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 	private function show_receipt_message() {
 		$receipt = RFW_Data::get_settings( 'receipt-redirect-msg' );
 		if ( $receipt ) {
-			echo '<p>' . wptexturize( $receipt ) . '</p>';
+			echo '<p>' . wp_kses_post( $receipt ) . '</p>';
 		}
 	}
 
@@ -153,7 +153,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 			<input id="rfw-order-id" type="hidden" value="<?php echo esc_attr( $order_id ); ?>">
 			<?php wp_nonce_field( 'rfw_checkout_action', 'rfw_nonce' ); ?>
 
-			<?php if ( ! RFW_Data::is_auto_redirect() ): ?>
+			<?php if ( ! RFW_Data::is_auto_redirect() ) : ?>
 				<?php $this->show_receipt_message(); ?>
 
 				<button type="button" id="rfw-pay" class="button btn-primary">
@@ -246,12 +246,14 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 
 		$charge_id = filter_input( INPUT_GET, 'charge_id', FILTER_SANITIZE_STRING );
 		if ( $charge_id ) {
+			// translators: charge ID.
 			$note .= sprintf( __( ', charge ID: %s', 'resolve' ), '<b>' . $charge_id . '</b>' );
 			$order->add_meta_data( 'rfw_charge_id', $charge_id, true );
 		}
 
 		$loan_id = filter_input( INPUT_GET, 'loan_id', FILTER_SANITIZE_STRING );
 		if ( $loan_id ) {
+			// translators: loan ID.
 			$note .= sprintf( __( ', loan ID: %s', 'resolve' ), '<b>' . $loan_id . '</b>' );
 			$order->add_meta_data( 'rfw_loan_id', $loan_id, true );
 		}
@@ -365,7 +367,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 		$url  = sprintf( $url_format, $merchant_id, $api_key, $mode, $charge_id );
 		$args = [
 			'headers' => [
-				'Authorization' => 'Basic ' . base64_encode( $merchant_id . ':' . $api_key ),
+				'Authorization' => 'Basic ' . base64_encode( $merchant_id . ':' . $api_key ), // @codingStandardsIgnoreLine - remove warning for base64_encode being unsafe.
 			],
 		];
 
@@ -375,6 +377,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 
 		if ( is_wp_error( $response ) ) {
 			RFW_Logger::log( 'Capturing order: ' . $order->get_id() . ' failed with message: ' . $response->get_error_message(), 'critical' );
+			// translators: error message.
 			$order->add_order_note( sprintf( __( 'Failed to capture the payment! Error message: %s', 'resolve' ), '<b>' . $response->get_error_message() . '</b>' ) );
 		} else {
 			try {
@@ -383,10 +386,11 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 
 				if ( isset( $body['error'] ) ) {
 					RFW_Logger::log( 'Capturing order: ' . $order->get_id() . ' failed with message: ' . $body['error']['message'], 'critical' );
+					// translators: error message.
 					$order->add_order_note( sprintf( __( 'Failed to capture the payment! Resolve returned an error message: %s', 'resolve' ), '<b>' . $body['error']['message'] . '</b>' ) );
 				} else {
 					do_action( 'rfw_order_payment_captured', $order );
-
+					// translators: charge ID.
 					$order->set_status( apply_filters( 'rfw_payment_captured_order_status', 'processing' ), sprintf( __( 'The payment was successfully captured! Resolve ID: %s.', 'resolve' ), '<b>' . $body['number'] . '</b>' ) );
 
 					$order->payment_complete( $body['number'] );
