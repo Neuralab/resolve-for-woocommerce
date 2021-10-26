@@ -41,7 +41,7 @@ function rfw_admin_notice_missing_woocommerce() {
 		?>
 		<div class="notice notice-error">
 			<?php // translators: anchor tags. ?>
-			<p><?php echo wp_kses_post( esc_html__( 'Please install and activate %1$s WooCommerce %2$s before activating Resolve payment gateway!', 'resolve' ), '<a href="http://www.woothemes.com/woocommerce/" target="_blank">', '</a>' ); ?></p>
+			<p><?php echo wp_kses_post( sprintf( __( 'Please install and activate %1$s WooCommerce %2$s before activating Resolve payment gateway!', 'resolve' ), '<a href="http://www.woothemes.com/woocommerce/" target="_blank">', '</a>' ) ); ?></p>
 		</div>
 		<?php
 	}
@@ -98,7 +98,7 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 		 */
 		public static function register_constants() {
 			if ( ! defined( 'RFW_PLUGIN_ID' ) ) {
-				define( 'RFW_PLUGIN_ID', 'resolve' );
+				define( 'RFW_PLUGIN_ID', 'resolve-pay-gateway' );
 			}
 			if ( ! defined( 'RFW_PLUGIN_VERSION' ) ) {
 				define( 'RFW_PLUGIN_VERSION', '1.0' );
