@@ -168,12 +168,12 @@ class RFW_Data {
 	 */
 	public static function get_checkout_data( $order, $gateway_settings ) {
 		return [
-			'merchant' => [
+			'merchant'        => [
 				'id'          => self::get_settings( 'webshop-merchant-id', true ),
 				'success_url' => $order->get_checkout_order_received_url(),
-				'cancel_url'  => $order->get_cancel_order_url_raw()
+				'cancel_url'  => $order->get_cancel_order_url_raw(),
 			],
-			'shipping' => [
+			'shipping'        => [
 				'name'            => $order->get_formatted_shipping_full_name(),
 				'company_name'    => $order->get_shipping_company(),
 				'phone'           => $order->get_billing_phone(),
@@ -184,7 +184,7 @@ class RFW_Data {
 				'address_postal'  => $order->get_shipping_postcode(),
 				'address_country' => $order->get_shipping_country(),
 			],
-			'billing' => [
+			'billing'         => [
 				'name'            => $order->get_formatted_billing_full_name(),
 				'company_name'    => $order->get_billing_company(),
 				'phone'           => $order->get_billing_phone(),
