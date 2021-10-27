@@ -40,7 +40,7 @@ class RFW_Data {
 			self::load_settings();
 		}
 
-		return isset( $settings['enabled'] ) && 'yes' === self::$settings['enabled'];
+		return isset( self::$settings['enabled'] ) && 'yes' === self::$settings['enabled'];
 	}
 
 	/**
