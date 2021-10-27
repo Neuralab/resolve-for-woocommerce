@@ -184,7 +184,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 		if ( RFW_Data::is_backorder_pay_disabled() ) {
 			foreach ( WC()->cart->get_cart() as $cart_item ) {
 				if ( $cart_item['data']->is_on_backorder( $cart_item['quantity'] ) ) {
-					unset( $available_gateways['resolve'] );
+					unset( $available_gateways[ RFW_PLUGIN_ID ] );
 					break;
 				}
 			}
@@ -198,7 +198,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 			$total = (float) WC()->cart->get_total( 'raw' );
 
 			if ( ( $order_min && $total < $order_min ) || ( $order_max && $total > $order_max ) ) {
-				unset( $available_gateways['resolve'] );
+				unset( $available_gateways[ RFW_PLUGIN_ID ] );
 			}
 		}
 
@@ -312,9 +312,8 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 			return;
 		}
 
-		// is the capture button clicked?
+		// Is the capture button clicked?
 		if ( (string) filter_input( INPUT_POST, 'rfw_capture_payment', FILTER_SANITIZE_STRING ) !== 'yes' ) {
-			RFW_Logger::log( 'Cannot find data about Capture button when trying to capture funds for order: ' . $post_id, 'critical' );
 			return;
 		}
 
@@ -373,7 +372,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 
 		$response = wp_remote_post( $url, $args );
 
-		RFW_Logger::log( 'Capturing order: ' . $order->get_id() . ' responded with: ' . stripslashes( wp_json_encode( $response ) ), 'critical' );
+		RFW_Logger::log( 'Capturing order: ' . $order->get_id() . ' responded with: ' . stripslashes( wp_json_encode( $response ) ), 'info' );
 
 		if ( is_wp_error( $response ) ) {
 			RFW_Logger::log( 'Capturing order: ' . $order->get_id() . ' failed with message: ' . $response->get_error_message(), 'critical' );

@@ -119,7 +119,7 @@ return [
 		'type'        => 'checkbox',
 		'label'       => __( 'Enable logging', 'resolve' ),
 		// translators: path to log file.
-		'description' => sprintf( __( 'Log gateway events, stored in %s. Note: this may log personal information. We recommend using this for debugging purposes only and deleting the logs when finished.', 'resolve' ), '<code>' . WC_Log_Handler_File::get_log_file_path( 'resolve' ) . '</code>' ),
+		'description' => sprintf( __( 'Log gateway events, stored in %s. Note: this may log personal information. We recommend using this for debugging purposes only and deleting the logs when finished.', 'resolve' ), '<code>' . WC_Log_Handler_File::get_log_file_path( RFW_PLUGIN_ID ) . '</code>' ),
 		'default'     => 'no',
 	],
 ];
