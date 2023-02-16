@@ -10,12 +10,12 @@
  * Text Domain:       resolve
  * Domain Path:       /languages
  *
- * Version: 1.0
+ * Version: 1.0.1
  *
  * Requires at least:    5.0
  * Requires PHP:         7.2
  * WC requires at least: 3.3
- * WC tested up to:      5.8
+ * WC tested up to:      7.4
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -101,7 +101,7 @@ if ( ! class_exists( 'RFW_Main' ) ) {
 				define( 'RFW_PLUGIN_ID', 'resolve-pay-gateway' );
 			}
 			if ( ! defined( 'RFW_PLUGIN_VERSION' ) ) {
-				define( 'RFW_PLUGIN_VERSION', '1.0' );
+				define( 'RFW_PLUGIN_VERSION', '1.0.1' );
 			}
 			if ( ! defined( 'RFW_PLUGIN_BASENAME' ) ) {
 				define( 'RFW_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
