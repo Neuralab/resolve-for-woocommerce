@@ -180,6 +180,10 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 			return $available_gateways;
 		}
 
+		if ( ! WC()->cart || WC()->cart->is_empty() ) {
+			return $available_gateways;
+		}
+
 		// Remove payment gateway if any of items in cart are on backorder.
 		if ( RFW_Data::is_backorder_pay_disabled() ) {
 			foreach ( WC()->cart->get_cart() as $cart_item ) {
