@@ -102,7 +102,7 @@ return [
 		'desc_tip'    => true,
 	],
 	'advanced-settings'        => [
-		'title'       => __( 'Advanced settings', 'kekspay' ),
+		'title'       => __( 'Advanced settings', 'resolve' ),
 		'type'        => 'title',
 		'description' => '',
 	],

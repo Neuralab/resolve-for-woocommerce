@@ -16,7 +16,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 	public function __construct() {
 		$this->id                 = RFW_PLUGIN_ID;
 		$this->method_title       = __( 'Resolve', 'resolve' );
-		$this->method_description = __( 'A payment gateway for Resolve.', 'kekspay' );
+		$this->method_description = __( 'A payment gateway for Resolve.', 'resolve' );
 		$this->has_fields         = true;
 
 		$this->init_form_fields();
