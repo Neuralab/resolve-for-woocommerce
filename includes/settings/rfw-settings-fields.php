@@ -27,7 +27,7 @@ return [
 		'title'       => __( 'Confirmation', 'resolve' ),
 		'type'        => 'textarea',
 		'description' => __( 'Confirmation message that will be added to the "thank you" page.', 'resolve' ),
-		'default'     => __( 'Your account has been charged and your transaction is successful.', 'resolve' ),
+		'default'     => '',
 		'desc_tip'    => true,
 	],
 	'receipt-redirect-msg'     => [
