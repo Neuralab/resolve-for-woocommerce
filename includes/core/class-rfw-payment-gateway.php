@@ -5,6 +5,8 @@ if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
 	return;
 }
 
+use Automattic\WooCommerce\Utilities\OrderUtil;
+
 /**
  * RFW_Payment_Gateway class
  */
@@ -312,7 +314,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 	 * @return  void
 	 */
 	public function process_capture( $post_id ) {
-		if ( get_post_type( $post_id ) !== 'shop_order' ) {
+		if ( 'shop_order' !== OrderUtil::get_order_type( $post_id ) ) {
 			return;
 		}
 
@@ -348,7 +350,7 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 			}
 		}
 
-		$this->send_capture_request( $charge_id, $order );
+		$this->send_capture_request( $charge_id, $order, true );
 	}
 
 
@@ -357,14 +359,17 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 	 *
 	 * @param   string    $charge_id  ID of the order in Resolve system, used to capture funds.
 	 * @param   WC_Order  $order      Object of the order in WooCommerce.
+	 * @param   bool      $manual     Is the capture automatically initiated or manually by webshop administrator.
 	 *
 	 * @return  void
 	 */
-	private function send_capture_request( $charge_id, $order ) {
+	private function send_capture_request( $charge_id, $order, $manual = false ) {
 		$url_format = 'https://%s:%s@%s.resolvepay.com/api/charges/%s/capture';
 
 		$merchant_id = RFW_Data::get_settings( 'webshop-merchant-id', true );
 		$api_key     = RFW_Data::get_settings( 'webshop-api-key', true );
+
+		$captured_order_status = RFW_Data::get_captured_status();
 
 		$mode = RFW_Data::test_mode() ? 'app-sandbox' : 'app';
 		$url  = sprintf( $url_format, $merchant_id, $api_key, $mode, $charge_id );
@@ -394,7 +399,9 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 				} else {
 					do_action( 'rfw_order_payment_captured', $order );
 					// translators: charge ID.
-					$order->set_status( apply_filters( 'rfw_payment_captured_order_status', 'processing' ), sprintf( __( 'The payment was successfully captured! Resolve ID: %s.', 'resolve' ), '<b>' . $body['number'] . '</b>' ) );
+					$order->set_status( $captured_order_status, sprintf( __( 'The payment was successfully captured! Resolve ID: %s.', 'resolve' ), '<b>' . $body['number'] . '</b>' ), $manual );
+					// Prevent post status update overriding order status with value submited in form.
+					$_POST['order_status'] = 'wc-' . $captured_order_status;
 
 					$order->payment_complete( $body['number'] );
 					$order->add_meta_data( 'rfw_payment_captured', 'yes', true );

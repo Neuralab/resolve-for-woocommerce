@@ -243,4 +243,25 @@ class RFW_Data {
 	public static function display_modal_link( $label = null ) {
 		return '<a href="#" id="rfw-apply">' . ( $label ?: __( 'Learn more', 'resolve' ) ) . '</a>';
 	}
+
+	/**
+	 * Allows changes to default capture status but double check if they are valid.
+	 *
+	 * @param   bool   $prefix  To return status with WC prefix or without.
+	 *
+	 * @return  string          Captured order status.
+	 */
+	public static function get_captured_status( $prefix = false ) {
+		$captured_order_status = apply_filters( 'rfw_payment_captured_order_status', 'processing' );
+		if ( 'processing' !== $captured_order_status ) {
+			$order_statuses = wc_get_order_statuses();
+
+			if ( ! isset( $order_statuses[ 'wc-' . $captured_order_status ] ) ) {
+				RFW_Logger::log( 'Custom order status: "' . $captured_order_status . '" is not a valid WC Order status, default capture status will be used (Processing).', 'warning' );
+				$captured_order_status = 'processing';
+			}
+		}
+
+		return $prefix ? 'wc-' . $captured_order_status : $captured_order_status;
+	}
 }

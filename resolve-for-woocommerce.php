@@ -51,6 +51,21 @@ if ( ! rfw_is_woocommerce_active() ) {
 	return;
 }
 
+/**
+ * Declare Resolve plugin compatible with HPOS.
+ *
+ * @return  void
+ */
+function rfw_hpos_compatible() {
+	if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+	}
+}
+add_action( 'before_woocommerce_init', 'rfw_hpos_compatible' );
+
+/**
+ * RFW_Main class
+ */
 if ( ! class_exists( 'RFW_Main' ) ) {
 	class RFW_Main {
 
