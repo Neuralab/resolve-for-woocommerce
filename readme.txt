@@ -4,7 +4,7 @@ Tags: resolve, woocommerce, gateway, payment
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.2
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -35,6 +35,9 @@ This extension allows B2B merchants to offer Net Terms to their customers withou
 For more installation options check the [official WordPress documentation](https://wordpress.org/support/article/managing-plugins/#manual-plugin-installation) about installing plugins.
 
 == Changelog ==
+
+= 1.0.4 =
+* Add HPOS compatibility
 
 = 1.0.3 =
 * Update tested up to.
