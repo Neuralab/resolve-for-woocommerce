@@ -4,7 +4,7 @@ Tags: resolve, woocommerce, gateway, payment
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.2
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPL v3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -12,9 +12,11 @@ Resolve for WooCommerce.
 
 == Description ==
 
-Resolve is a complete B2B credit management and net terms solution that helps your customers get net terms while you get paid faster. If you’re looking for a better way to manage the nightmare of customer credit checks, net terms risk, payments, and cash flow woes - Resolve is here to help. We believe your business shouldn’t act like a bank unless you’re actually a bank. Get paid by Resolve in a day, and we’ll let your customers pay us in 30, 60, or 90 days. However your customers buy from you, e-commerce or off-line, we've got you covered.
+Resolve, a comprehensive B2B credit management and net terms solution, brings net terms as a payment method to your checkout (lifts conversion rates) and boosts your cash flow by providing advance payment when you extend net terms to customers. We help you streamline your entire AR process including providing quick credit checks, net terms risk management, AR automation, payments and collections – so you can focus on growing your business.
 
-This extension allows B2B merchants to offer Net Terms to their customers without the hassle of running credit checks, floating short-term credit, chasing payments, and processing payments. When customers request to pay by invoice (e.g., Net 30), Resolve credit checks them and assesses their risk profile. Once approved for net terms, customers can select the “Pay with Net Terms” payment selection in the checkout, which gives them 30-90 days to pay while you get paid sooner.
+With Resolve, you’ll receive up to 100% on net terms invoices within 1 day, allowing your customers to pay on 30/45/60 day terms for increased purchasing power. We handle payments, collections, and automate credit risk management – saving your accounting team valuable time and resources.
+
+Our WooCommerce extension seamlessly integrates Net Terms into the checkout experience, offering customers 30-90 days to pay while ensuring you receive prompt payments.
 
 == Installation ==
 
@@ -36,8 +38,11 @@ For more installation options check the [official WordPress documentation](https
 
 == Changelog ==
 
+= 1.0.5 =
+* Update plugin description.
+
 = 1.0.4 =
-* Add HPOS compatibility
+* Add HPOS compatibility.
 
 = 1.0.3 =
 * Update tested up to.
