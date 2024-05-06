@@ -16,6 +16,14 @@ return [
 		'default'     => __( 'Resolve', 'resolve' ),
 		'desc_tip'    => true,
 	],
+	'explainer-disable'        => [
+		'title'       => __( 'Hide explainer', 'resolve' ),
+		'type'        => 'checkbox',
+		'label'       => __( 'Hide explainer text', 'resolve' ),
+		'description' => __( 'When enabled hides checkout explainer text: "Hassle-free terms with no hidden fees. Sign up and get approved today. Learn more".', 'resolve' ),
+		'default'     => 'no',
+		'desc_tip'    => true,
+	],
 	'description-msg'          => [
 		'title'       => __( 'Description', 'resolve' ),
 		'type'        => 'textarea',

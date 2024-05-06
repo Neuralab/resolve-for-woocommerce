@@ -96,7 +96,10 @@ class RFW_Payment_Gateway extends WC_Payment_Gateway {
 	 * @return  mixed Description wrapped in HTML.
 	 */
 	public function payment_fields() {
-		echo '<p>' . esc_html__( 'Hassle-free terms with no hidden fees. Sign up and get approved today. ', 'resolve' ) . wp_kses_post( RFW_Data::display_modal_link() ) . '</p>';
+		$hide_explainer = RFW_Data::get_settings( 'explainer-disable' );
+		if ( ! $hide_explainer || 'no' === $hide_explainer ) {
+			echo '<p>' . esc_html__( 'Hassle-free terms with no hidden fees. Sign up and get approved today. ', 'resolve' ) . wp_kses_post( RFW_Data::display_modal_link() ) . '</p>';
+		}
 
 		$desc = RFW_Data::get_settings( 'description-msg' );
 		if ( $desc ) {
