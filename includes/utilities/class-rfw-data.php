@@ -200,6 +200,11 @@ class RFW_Data {
 			'shipping_amount' => $order->get_shipping_total(),
 			'tax_amount'      => $order->get_total_tax(),
 			'total_amount'    => $order->get_total(),
+			'metadata'        => [
+				'platform_resolve' => RFW_PLUGIN_VERSION,
+				'platform_type'    => 'WooCommerce',
+				'platform_version' => WC_VERSION,
+			],
 		];
 	}
 
