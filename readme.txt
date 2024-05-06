@@ -40,6 +40,7 @@ For more installation options check the [official WordPress documentation](https
 
 = 1.0.6 =
 * Add option to hide explainer text.
+* Add platform metadata.
 
 = 1.0.5 =
 * Update plugin description.
